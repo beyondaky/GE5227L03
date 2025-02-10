@@ -1,0 +1,321 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Assignment 3_Gambling Sites and Support Centres in Singapore</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      
+      #basemapStyles {
+         width: 300px;
+         padding: 10px;
+      }
+
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/dark/main.css">
+    <script src="https://js.arcgis.com/4.29/"></script>
+
+    <script type="module" src="https://js.arcgis.com/calcite-components/2.5.1/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/2.5.1/calcite.css" />
+
+
+    <script>
+      require(["esri/config",
+               "esri/Map",
+               "esri/views/MapView",
+
+               "esri/layers/FeatureLayer",
+               "esri/symbols/PictureMarkerSymbol",
+
+               "esri/widgets/Locate",
+               "esri/widgets/Track",
+               "esri/Graphic",
+               "esri/widgets/LayerList",
+               "esri/widgets/Legend",
+               "esri/widgets/ScaleBar",
+
+               "esri/widgets/Directions",
+               "esri/layers/RouteLayer"
+               ],
+                
+               function(esriConfig, Map, MapView, FeatureLayer, PictureMarkerSymbol, Locate, Track, Graphic, LayerList, Legend, ScaleBar, Directions, RouteLayer) {
+
+        const apiKey = "AAPK8a33ee3c6ac24a319cdf656596b5748adPPArq8fbCbs_zHACzeYwWvCfXowUulS7HRtPUbgcssZMTP56HnT3gCP6x6YLM_G";
+
+        const routelayer = new RouteLayer();
+
+        const map = new Map({
+          basemap: "gray-vector", // basemap styles service
+          layers: [routelayer]
+        });
+
+        const view = new MapView({
+          map: map,
+          center: [103.8198, 1.3521], // Longitude, latitude
+          zoom: 11, // Zoom level
+          container: "viewDiv", // Div element
+          constraints: {
+            snapToZoom: false
+          }
+        });  
+
+        let directionsWidget = new Directions({
+          layer: routelayer,
+          apiKey,
+          view
+        });
+
+        // Add the Directions widget to the top right corner of the view
+        view.ui.add(directionsWidget, {
+          position: "bottom-left"
+        });        
+
+
+
+        // ADDING LOCATE WIDGET
+        const locate = new Locate({
+          view: view,
+          useHeadingEnabled: false,
+          goToOverride: function(view, options) {
+            options.target.scale = 1500;
+            return view.goTo(options.target);
+          }
+        });
+        view.ui.add(locate, "top-left");
+
+
+
+        // ADDING TRACK WIDGET
+        const track = new Track({
+          view: view,
+          graphic: new Graphic({
+            symbol: {
+              type: "simple-marker",
+              size: "12px",
+              color: "green",
+              outline: {
+                color: "#efefef",
+                width: "1.5px"
+              }
+            }
+          }),
+          useHeadingEnabled: false
+        });
+        view.ui.add(track, "top-left");
+
+
+
+        // ADDING CUSTOM PICTURE MARKER SYMBOLS
+        const HelpCentresLayericon = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          "url": "https://cdn-icons-png.flaticon.com/512/9247/9247296.png",
+          "width": "35px",
+          "height": "35px"
+        }
+      }     
+
+        const GamingMachineRoomLayericon = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          "url": "https://cdn-icons-png.flaticon.com/512/5698/5698852.png",
+          "width": "20px",
+          "height": "20px"
+        }
+      }       
+
+      const CasinoLayericon = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          "url": "https://cdn-icons-png.flaticon.com/512/7399/7399022.png",
+          "width": "20px",
+          "height": "20px"
+        }
+      }
+
+        const HorseBettingLayericon = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          "url": "https://assets-global.website-files.com/5fbe2bde2b2ef4841cd6639c/602d9d2b5c1cca6c0874fe8e_STC-Logo-COL-p-1080.jpeg",
+          "width": "30px",
+          "height": "18px"
+        }
+      }
+
+      const SingaporePoolsLayericon = {
+        "type": "simple",
+        "symbol": {
+          "type": "picture-marker",
+          "url": "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/39/d1/43/39d14346-bd0c-bf45-96b8-004f585f5a8b/AppIcon-1x_U007emarketing-0-7-0-85-220.png/512x512bb.jpg",
+          "width": "10px",
+          "height": "10px"
+        }
+      }
+
+        
+        // Adding Basemap Style
+         const updateBasemapStyle = (basemapId) => {
+            view.map.basemap = basemapId;
+         };
+
+         const basemapStylesDiv = document.getElementById("basemapStyles");
+            view.ui.add(basemapStylesDiv, "top-right");
+
+         const styleCombobox = document.getElementById("styleCombobox");
+         styleCombobox.addEventListener("calciteComboboxChange", (event) => {
+         updateBasemapStyle(event.target.value);
+         });  
+         
+
+
+
+        // ADDING FEATURE LAYERS + POPUP
+        // GAMING MACHINE ROOM
+        const popupGamingMachineRoomLayer = {
+        "title": "<b>{Name_of_Outlet}</b> 🎰",
+        "content": "<b>Address: </b> {Address}<br><br><b>Type: </b> {Type}<br>"
+        };
+
+        const GamingMachineRoomLayer = new FeatureLayer ({
+            url:"https://services-ap1.arcgis.com/t5MjED9tR3Etqf4F/arcgis/rest/services/Gaming_Machine_Room/FeatureServer",
+            renderer: GamingMachineRoomLayericon,
+            outFields: ["Address","Type","Name_of_Outlet"],
+            popupTemplate: popupGamingMachineRoomLayer,
+            opacity: 0.75
+        });
+
+        map.add(GamingMachineRoomLayer);
+
+
+
+        // CASINO
+        const popupCasinoLayer = {
+        "title": "<b>{Name_of_Outlet}</b> 🎲",
+        "content": "<b>Address: </b> {Address}<br><br><b>Type: </b> {Type}<br>"
+        };
+
+        const CasinoLayer = new FeatureLayer ({
+            url:"https://services-ap1.arcgis.com/t5MjED9tR3Etqf4F/arcgis/rest/services/Casino/FeatureServer",
+            renderer: CasinoLayericon,
+            outFields: ["Address","Type","Name_of_Outlet"],
+            popupTemplate: popupCasinoLayer,
+        });
+
+        map.add(CasinoLayer);
+
+
+
+        // HORSE BETTING
+        const popupHorseBettingLayer = {
+        "title": "<b>{Name_of_Outlet}</b> 🐴",
+        "content": "<b>Address: </b> {Address}<br><br><b>Type: </b> {Type}<br><br> <b>Info: </b> The Singapore Turf Club will hold its last race - the 100th Grand Singapore Gold Cup - on Oct, 5, 2024, marking the end of over 180 years of horse racing here (Staits Times, 2023)."
+        };
+
+        const HorseBettingLayer = new FeatureLayer ({
+            url:"https://services-ap1.arcgis.com/t5MjED9tR3Etqf4F/arcgis/rest/services/Horse_Betting/FeatureServer",
+            renderer: HorseBettingLayericon,
+            outFields: ["Address","Type","Name_of_Outlet"],
+            popupTemplate: popupHorseBettingLayer,
+            opacity: 0.75
+        });
+
+        map.add(HorseBettingLayer);
+
+        // SINGAPORE POOLS
+        const popupSingaporePoolsLayer = {
+        "title": "<b>{Name_of_Outlet}</b> 📝",
+        "content": "<b>Address: </b> {Address}<br><br><b>Licence Type: </b> {Branches}<br>"
+        };
+
+        const SingaporePoolsLayer = new FeatureLayer ({
+            url:"https://services-ap1.arcgis.com/t5MjED9tR3Etqf4F/arcgis/rest/services/Singapore_Pools/FeatureServer",
+            outFields: ["Address","Branches","Name_of_Outlet"],
+            popupTemplate: popupSingaporePoolsLayer,
+            renderer: SingaporePoolsLayericon,
+            opacity: 0.7
+        });
+
+        map.add(SingaporePoolsLayer);
+
+
+        
+        // SUPPORT CENTRES
+        const popupHelpCentresLayer = {
+        "title": "<b>{Name_of_Support_Centre}</b> 👋",
+        "content": "<b>Address: </b> {Address}<br><br><b>Type: </b> {Type}<br><br><b> Helpline: </b> {Helpline}"
+        };  
+
+        const HelpCentresLayer = new FeatureLayer ({
+            url:"https://services-ap1.arcgis.com/t5MjED9tR3Etqf4F/arcgis/rest/services/Support_Centres/FeatureServer",
+            renderer: HelpCentresLayericon,
+            outFields: ["Address","Type","Name_of_Support_Centre"],
+            popupTemplate: popupHelpCentresLayer
+        });
+
+        map.add(HelpCentresLayer);
+
+        HelpCentresLayer.effect = "bloom(0.75, 0.75px, 10%)";
+
+
+        //ADDING LAYERLIST WIDGET
+        const layerList = new LayerList ({
+          view: view
+        });
+
+        view.ui.add(layerList, "top-right");
+
+
+        //ADDING LEGEND WIDGET
+        const layerLegend = new Legend ({
+          view: view,
+        });
+
+        view.ui.add(layerLegend, "top-right");
+
+
+      
+        //ADDING SCALEBAR WIDGET
+        const scalebar = new ScaleBar ({
+          view: view,
+          unit:"dual"
+        });
+
+        view.ui.add(scalebar,{
+          position: "bottom-right"
+        });      
+
+
+      });   
+    </script>
+
+  </head>
+
+
+  <body>
+    <div id="viewDiv"></div>
+    
+    <div id="basemapStyles" class="esri-widget">
+      <calcite-label>Basemap Switch</calcite-label>
+      <calcite-combobox id="styleCombobox" selection-mode="single" clear-disabled>
+        <calcite-combobox-item value="gray-vector" text-label="Light Map"></calcite-combobox-item>
+        <calcite-combobox-item value="dark-gray-vector" text-label="Dark Map"></calcite-combobox-item>
+        <calcite-combobox-item value="streets-relief-vector" text-label="Street Map"></calcite-combobox-item>
+        <calcite-combobox-item value="hybrid" text-label="Satellite Map"></calcite-combobox-item>
+      </calcite-combobox>
+      
+  </body>
+</html>
